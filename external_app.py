@@ -5,23 +5,22 @@ import itertools
 
 app = FastAPI()
 
-# Список экземпляров приложения
 instances = [
-    "http://127.0.0.1:8081",
-    "http://127.0.0.1:8082",
-    "http://127.0.0.1:8083"
+    "http://127.0.0.1:8001",
+    "http://127.0.0.1:8002",
+    "http://127.0.0.1:8003"
 ]
 
-# Итератор для Round Robin
 instance_iterator = itertools.cycle(instances)
 
-# Мониторинг доступности экземпляров
+
 def is_instance_available(instance):
     try:
         response = httpx.get(f"{instance}/api/getInfoInternal", timeout=2.0)
         return response.status_code == 200
     except httpx.RequestError:
         return False
+
 
 @app.get("/api/public/getInfo")
 async def get_info():
@@ -35,8 +34,10 @@ async def get_info():
                 continue
     raise HTTPException(status_code=503, detail="No instances available")
 
+
 class AddInstanceRequest(BaseModel):
     url: str
+
 
 @app.post("/api/private/addNewCopy")
 async def add_new_copy(request: AddInstanceRequest):
