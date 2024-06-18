@@ -1,47 +1,39 @@
+import uvicorn
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 import httpx
 import itertools
+from config import ports, host, main_port
 
 app = FastAPI()
 
-instances = [
-    "http://127.0.0.1:8001",
-    "http://127.0.0.1:8002",
-    "http://127.0.0.1:8003"
-]
-
-instance_iterator = itertools.cycle(instances)
+port_iterator = itertools.cycle(ports)
 
 
-def is_instance_available(instance):
+def is_instance_available(port):
+    global port_iterator
     try:
-        response = httpx.get(f"{instance}/api/getInfoInternal", timeout=2.0)
+        response = httpx.get(f'http://{host}:{port}/api/getInfoInternal/{port}', timeout=2.0)
         return response.status_code == 200
     except httpx.RequestError:
+        ports.remove(port)
+        port_iterator = itertools.cycle(ports)
         return False
 
 
-@app.get("/api/public/getInfo")
+@app.get('/api/public/getInfo')
 async def get_info():
-    for _ in range(len(instances)):
-        instance = next(instance_iterator)
-        if is_instance_available(instance):
+    for _ in range(len(ports)):
+        port = next(port_iterator)
+        if is_instance_available(port):
             try:
-                response = httpx.get(f"{instance}/api/getInfoInternal")
+                response = httpx.get(f'http://{host}:{port}/api/getInfoInternal/{port}')
+                print(ports)
+                print(f'{port} called')
                 return response.json()
             except httpx.RequestError:
                 continue
-    raise HTTPException(status_code=503, detail="No instances available")
+    raise HTTPException(status_code=503, detail='No instances available')
 
 
-class AddInstanceRequest(BaseModel):
-    url: str
-
-
-@app.post("/api/private/addNewCopy")
-async def add_new_copy(request: AddInstanceRequest):
-    instances.append(request.url)
-    global instance_iterator
-    instance_iterator = itertools.cycle(instances)
-    return {"message": "Instance added successfully"}
+if __name__ == '__main__':
+    uvicorn.run(app, host=host, port=int(main_port))
