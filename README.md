@@ -46,3 +46,17 @@ uvicorn internal_app:app --host <host> --port <порт>
 
 ### Тестовый клиент
 Когда приложение полностью запущено, можно запустить файл test_client.py, который пошлет несколько запросов в приложение и в терминал выдаст ответы с сервера.
+
+#### Пример
+```
+{'message': 'necessary info', 'port': '8081'}
+{'message': 'necessary info', 'port': '8082'}
+{'message': 'necessary info', 'port': '8083'}
+{'message': 'necessary info', 'port': '8081'}
+{'message': 'necessary info', 'port': '8082'}
+{'message': 'necessary info', 'port': '8083'}
+{'message': 'necessary info', 'port': '8081'}
+{'message': 'necessary info', 'port': '8082'}
+{'message': 'necessary info', 'port': '8083'}
+{'message': 'necessary info', 'port': '8081'}
+```
